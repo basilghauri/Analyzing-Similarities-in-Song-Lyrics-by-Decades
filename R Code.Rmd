@@ -1,0 +1,225 @@
+---
+title: "Analyzing Similarities in Songs by Decades"
+author: "Basil Ghauri"
+date: "6/3/2020"
+output: html_document
+---
+
+We will analyze the similarities between songs that came out in a span of four decades. This will be done by collecting the lyrics of top five songs from each decade and applying topic modeling on them to see overtime if popular song lyrics had any form of impact on cultural fluidity. The songs used for the analyssi are as follows:
+
+The list of songs were taken from the Billboard Top Charts (by decade):
+
+Most Popular Songs in the 1980's
+1) Physical by Olivia Newton John
+2) Bette Davis Eyes by Kim Carnes
+3) Endless Love by Lionel Richie
+4) Eye of the Tiger by Survivor
+5) Every Breathe you Take by The Police
+
+Most Popular Songs in the 1900's
+1) How Do I Live by LeAnn Rimes
+2) Too Close by Next
+3) Un-Break MY Heart by Toni Braxton
+4) Floolish Games / You Were Meant For Me by Jewel
+5) Everything I Do I Do It for You by Bryan Adams
+
+Most Popular Songs in 2000's
+1) No One by Alicia Keys
+2) Yeah by Usher ft Lil Jon and Ludacris
+3) Low by Flo Rida ft T-Pain
+4) I Gotta Feeling by The Black Eyed Peas
+5) How You Remind Me by Nickelblack
+
+Most Popular SOngs in 2010's
+1) Uptown Funk by Mark Ronson ft Bruno Mars
+2) Party Rock Anthem by LMFAO
+3) Shape of You by Ed Sheeran
+4) Closer by Chain Smokers ft Halsey
+5) Girls Like You Maroon 5 ft Cardi B
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(tidytext)
+library(ggplot2)
+library(genius)
+```
+
+```{r}
+# extracting song lyrics from the eighties.
+newton=genius_lyrics(artist = "Olivia Newton-John",song = "Physical",info = "title")
+
+kim=genius_lyrics(artist = "Kim Carnes",song = "Bette Davis Eyes",info = "title")
+
+lionel=genius_lyrics(artist = "Lionel Richie",song = "Endless Love",info = "title")
+
+survivor=genius_lyrics(artist = "Survivor",song = "Eye of the Tiger",info = "title")
+
+police=genius_lyrics(artist = "The Police",song = "Every Breath You Take",info = "title")
+
+eighties=rbind(newton,kim,lionel,survivor,police)
+
+eighties=eighties%>%
+  mutate(decade=1980)
+```
+
+```{r}
+rimes=genius_lyrics(artist = "LeAnn Rimes",song = "How Do I Live",info = "title")
+
+nex=genius_lyrics(artist = "Next",song = "Too Close",info = "title")
+
+braxton=genius_lyrics(artist = "Toni Braxton",song = "Un-Break My Heart",info = "title")
+
+jewel=genius_lyrics(artist = "Jewel",song = "Foolish Games",info = "title")
+
+bryan=genius_lyrics(artist = "Bryan Adams",song = "(Everything I Do) I Do It for You",info = "title")
+
+nineties=rbind(rimes,nex,braxton,jewel,bryan)
+
+nineties=nineties%>%
+  mutate(decade=1990)
+```
+
+```{r}
+keys=genius_lyrics(artist = "Alicia Keys",song = "No One",info = "title")
+
+usher=genius_lyrics(artist = "Usher",song = "Yeah",info = "title")
+
+flo=genius_lyrics(artist = "Flo Rida",song = "Low",info = "title")
+
+peas=genius_lyrics(artist = "The Black Eyed Peas",song = "I Gotta Feeling",info = "title")
+
+nickelback=genius_lyrics(artist = "nickelback",song = "How You Remind Me ",info = "title")
+
+twothousand=rbind(keys,usher,flo,peas,nickelback)
+
+twothousand=twothousand%>%
+  mutate(decade=2000)
+```
+
+```{r}
+ronsan=genius_lyrics(artist = "Mark Ronson",song = "Uptown Funk",info = "title")
+
+lmfao=genius_lyrics(artist = "LMFAO",song = "Party Rock Anthem",info = "title")
+
+sheeran=genius_lyrics(artist = "Ed Sheeran",song = "Shape of You",info = "title")
+
+chainsmokers=genius_lyrics(artist = "The Chainsmokers",song = "Closer",info = "title")
+
+maroon=genius_lyrics(artist = "Maroon 5",song = "Girls Like You",info = "title")
+
+twothousand_ten=rbind(ronsan,lmfao,sheeran,chainsmokers,maroon)
+
+twothousand_ten=twothousand_ten%>%
+  mutate(decade=2010)
+```
+
+```{r}
+# combining al songs in one single dataframe.
+allsongs=rbind(eighties,nineties,twothousand,twothousand_ten)
+
+allsongs_tokens=allsongs%>%
+  unnest_tokens(word,lyric)
+```
+
+```{r}
+# removing stopwords and finding document word count.
+
+word_count=allsongs_tokens%>%
+  anti_join(stop_words)%>%
+  count(track_title,word,decade,sort = TRUE)%>%
+  ungroup()
+
+word_count
+```
+
+```{r}
+#converting dataframe into Document Term MAtrix
+
+songs_dtm=word_count%>%
+  cast_dtm(track_title,word,n)
+
+songs_dtm
+```
+
+```{r}
+# applying LDA to the Document Term Matrix
+
+songs_lda=LDA(songs_dtm,k=4,control = list(seed=999))
+
+songs_lda
+```
+
+```{r}
+# per topic word probabilities
+
+songs_topics=tidy(songs_lda,matrix="beta")
+songs_topics
+```
+
+```{r}
+# top 5 words in each topic
+
+top_terms=songs_topics%>%
+  group_by(topic)%>%
+  top_n(5,beta)%>%
+  ungroup()%>%
+  arrange(topic,-beta)
+```
+
+```{r}
+# visualize the top words
+
+top_terms%>%
+  mutate(term=reorder_within(term,beta,topic))%>%
+  ggplot(aes(term,beta,fill=factor(topic)))+
+  geom_col(show.legend = FALSE)+
+  facet_wrap(~topic,scales = "free")+
+  coord_flip()+
+  scale_x_reordered()
+```
+
+```{r}
+# per song classification with gamma
+
+songs_gamma=tidy(songs_lda,matrix="gamma")
+songs_gamma
+```
+
+```{r}
+# reorder titles in order of topics before  plotting them.
+
+songs_gamma%>%
+  mutate(title=reorder(document,gamma*topic))%>%
+  ggplot(aes(factor(topic),gamma))+
+  geom_boxplot()+
+  facet_wrap(~title)
+```
+
+Topic 1
+1) I Gotta Feeling 
+2) Shape Of You
+3) Every Breath You Take
+4) Endless Love
+5) How Do I Live
+6) Party Rock Anthem
+
+Topic 2
+1) Low
+2) Too Close
+3) Un-Break My Heart
+4) Physical
+5) Closer
+6) Bette Davis Eyes
+
+Topic 3
+1) No One
+2) (Everything I Do) I Do It for You
+3) Foolish Games
+4) Eyes of a Tiger
+5) How You Remind Me
+6) Girls Like You
+
+Topic 4
+1) Yeah
+2) Uptown Funk
