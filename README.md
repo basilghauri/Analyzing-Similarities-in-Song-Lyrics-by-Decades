@@ -26,15 +26,14 @@ Most Popular Songs in 2000's
 4) I Gotta Feeling by The Black Eyed Peas
 5) How You Remind Me by Nickelblack
 
-Most Popular SOngs in 2010's
+Most Popular Songs in 2010's
 1) Uptown Funk by Mark Ronson ft Bruno Mars
 2) Party Rock Anthem by LMFAO
 3) Shape of You by Ed Sheeran
 4) Closer by Chain Smokers ft Halsey
 5) Girls Like You Maroon 5 ft Cardi B
 
-
-
+![__results___11_0](https://user-images.githubusercontent.com/52931904/84821692-5b6ab680-afd0-11ea-9af4-94d0f7f103ac.png)
 
 Topic 1
 1) I Gotta Feeling 
@@ -63,3 +62,7 @@ Topic 3
 Topic 4
 1) Yeah
 2) Uptown Funk
+
+
+## The chart below represents how all the songs were divided unde the four topics.
+![Work Breakdown Structure (WBS)](https://user-images.githubusercontent.com/52931904/84821368-dda6ab00-afcf-11ea-8224-1590305cee52.png)
