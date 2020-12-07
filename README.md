@@ -1,7 +1,7 @@
 # Analyzing Similarities in Song Lyrics by Decades
  Analyzing the lyrics of most popular songs over the span of four decades.
 
-We will analyze the similarities between songs that came out in a span of four decades. This will be done by collecting the lyrics of top five songs from each decade and applying topic modeling on them to see overtime if popular song lyrics had any form of impact on cultural fluidity. The songs used for the analyssi are as follows:
+We will analyze the similarities between songs that came out in a span of four decades. This will be done by collecting the lyrics of top five songs from each decade using the Genius api and applying topic modeling on them to see if we are able to categorize them by their genres.
 
 The list of songs were taken from the Billboard Top Charts (by decade):
 
